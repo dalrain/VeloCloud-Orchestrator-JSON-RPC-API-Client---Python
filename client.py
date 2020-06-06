@@ -13,10 +13,16 @@
 #
 # Examples:
 #
-#  (1) Initialize, authenticate:
+#  (1a) Initialize, authenticate:
 #  ```
 #      client = VcoRequestManager("vcoXX-usvi1.velocloud.net")
 #      client.authenticate(os.environ["VC_USERNAME"], os.environ["VC_PASSWORD"], is_operator=True)
+#  ```
+
+#  (1b) Initialize, set API token:
+#  ```
+#      client = VcoRequestManager("vcoXX-usvi1.velocloud.net")
+#      client.set_token("TOKENABCXYZ")
 #  ```
 
 #  (2) Get Edges
@@ -42,6 +48,7 @@ class VcoRequestManager(object):
         self._portal_url = self._root_url + "/portal/"
         self._livepull_url = self._root_url + "/livepull/liveData/"
         self._seqno = 0
+        self._token = None
 
     def _get_root_url(self, hostname):
         """
@@ -51,6 +58,14 @@ class VcoRequestManager(object):
             re.sub('http(s)?://', '', hostname)
         proto = "https://"
         return proto + hostname
+
+    def set_token(self, token):
+        """
+        Set token to allow for token auth via API
+        :param token: Token string
+        :return: None
+        """
+        self._token = "Token " + token
 
     def authenticate(self, username, password, is_operator=True):
         """
@@ -70,6 +85,8 @@ class VcoRequestManager(object):
         """
         self._seqno += 1
         headers = { "Content-Type": "application/json" }
+        if self._token:
+            headers["Authorization"] = self._token
         method = self._clean_method_name(method)
         payload = { "jsonrpc": "2.0",
                     "id": self._seqno,
